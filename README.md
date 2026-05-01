@@ -28,7 +28,20 @@ Required workflows:
 
 ### 2. Claude MCP
 
-Install uv:
+## Repo structure:
 
-```bash
-brew install uv
+birdseye-life-sre/
+├─ README.md
+├─ dashboard/
+│  └─ birdseye-dashboard-ready.html
+├─ n8n/
+│  ├─ gmail-to-mcp-prompt.workflow.json
+│  └─ pagerduty-dashboard-proxy.workflow.json
+├─ claude/
+│  ├─ claude_desktop_config.example.json
+│  └─ mcp-prompts.md
+├─ docs/
+│  ├─ architecture.md
+│  ├─ demo-script.md
+│  └─ screenshots/
+└─ .gitignore
