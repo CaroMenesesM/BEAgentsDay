@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "pagerduty": {
+      "command": "uvx",
+      "args": ["pagerduty-mcp"],
+      "env": {
+        "PAGERDUTY_USER_API_KEY": "e+aDaE56jaSK4tDA22Kw"
+      }
+    }
+  }
+}
+Use PagerDuty MCP tools to create an incident.
+
+Service: Birdseye Life SRE
+
+Incident title: Birdseye Gmail life-ops review needed
+Severity: warning
+
+Summary:
+[generated from Gmail via n8n]
+
+Context:
+- Source: Gmail
+- Detected by: Birdseye Life SRE Agent
+
+Return the incident ID and URL.
