@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Birdseye Life SRE</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --soft-red: #fee2e2;
+      --red: #991b1b;
+      --soft-green: #dcfce7;
+      --green: #166534;
+      --soft-yellow: #fef3c7;
+      --yellow: #92400e;
+      --soft-blue: #dbeafe;
+      --blue: #1e40af;
+      --shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 32px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: 42px;
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .top-status {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+      color: var(--muted);
+      font-size: 14px;
+      min-width: 260px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 26px;
+      box-shadow: var(--shadow);
+      min-height: 205px;
+    }
+
+    .label {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      margin: 0 0 16px 0;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    p {
+      font-size: 18px;
+      line-height: 1.45;
+      margin: 0 0 12px 0;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .status-red { background: var(--soft-red); color: var(--red); }
+    .status-green { background: var(--soft-green); color: var(--green); }
+    .status-yellow { background: var(--soft-yellow); color: var(--yellow); }
+    .status-blue { background: var(--soft-blue); color: var(--blue); }
+
+    pre {
+      white-space: pre-wrap;
+      background: #f3f4f6;
+      padding: 16px;
+      border-radius: 14px;
+      overflow: auto;
+      font-size: 15px;
+      line-height: 1.45;
+      max-height: 230px;
+    }
+
+    a {
+      color: #2563eb;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    a:hover { text-decoration: underline; }
+
+    .incident-meta {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 8px 12px;
+      margin-top: 16px;
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    .incident-meta strong {
+      color: var(--text);
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .debug {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .small {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 850px) {
+      body { padding: 20px; }
+      header { flex-direction: column; }
+      .top-status { align-items: flex-start; }
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 34px; }
+      h2 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Birdseye Life SRE</h1>
+      <div class="subtitle">Personal SRE agent for Gmail-driven life operations incidents</div>
+    </div>
+    <div class="top-status">
+      <span id="connection-badge" class="status status-yellow">Connecting to dashboard API...</span>
+      <span id="last-updated">Last updated: never</span>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <div class="label">Inbox Signal</div>
+      <h2 id="signal-title">Gmail event detected</h2>
+      <p id="signal-summary">Birdseye generated an incident task from a Gmail signal.</p>
+      <span class="status status-red">Needs review</span>
+    </section>
+
+    <section class="card">
+      <div class="label">Agent Prompt</div>
+      <h2>Birdseye generated MCP task</h2>
+      <pre id="agent-prompt">Use PagerDuty MCP tools to create an incident.
+
+Service: Birdseye Life SRE
+Severity: warning
+Source: Gmail</pre>
+    </section>
+
+    <section class="card">
+      <div class="label">Agent Runtime</div>
+      <h2>Claude + PagerDuty MCP</h2>
+      <p>Claude receives the structured task and calls PagerDuty MCP tools to create or inspect incidents.</p>
+      <span class="status status-blue">MCP connected</span>
+    </section>
+
+    <section class="card">
+      <div class="label">Live PagerDuty Incident</div>
+      <h2 id="incident-title">Loading latest incident...</h2>
+      <p id="incident-description">Waiting for PagerDuty data from n8n.</p>
+      <p id="incident-url"></p>
+      <div class="incident-meta">
+        <span>Status</span><strong id="incident-status">—</strong>
+        <span>Urgency</span><strong id="incident-urgency">—</strong>
+        <span>Service</span><strong id="incident-service">—</strong>
+        <span>Created</span><strong id="incident-created">—</strong>
+      </div>
+    </section>
+
+    <section class="card full-width">
+      <div class="label">Live Incident Feed</div>
+      <div id="incident-feed" class="small">Loading recent PagerDuty incidents...</div>
+      <div id="debug" class="debug"></div>
+    </section>
+  </main>
+
+  <script>
+    const DASHBOARD_API = "http://localhost:5678/webhook/birdseye-dashboard";
+
+    const $ = (id) => document.getElementById(id);
+
+    function setConnection(ok, message) {
+      $("connection-badge").className = ok
+        ? "status status-green"
+        : "status status-red";
+      $("connection-badge").textContent = message;
+      $("last-updated").textContent = "Last updated: " + new Date().toLocaleTimeString();
+    }
+
+    function formatDate(value) {
+      if (!value) return "—";
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) return value;
+      return parsed.toLocaleString();
+    }
+
+    function extractIncidents(data) {
+      // n8n can return either:
+      // 1) { incidents: [...] }
+      // 2) [{ incidents: [...] }]
+      // 3) [{ json: { incidents: [...] }}]
+      // This handles all common response shapes.
+      if (Array.isArray(data)) {
+        if (data[0]?.json?.incidents) return data[0].json.incidents;
+        if (data[0]?.incidents) return data[0].incidents;
+        if (data[0]?.id && data[0]?.title) return data;
+      }
+
+      if (data?.json?.incidents) return data.json.incidents;
+      if (data?.incidents) return data.incidents;
+
+      return [];
+    }
+
+    function renderIncident(incident) {
+      $("incident-title").textContent = incident.title || incident.summary || "Untitled incident";
+      $("incident-description").textContent =
+        incident.description ||
+        incident.summary ||
+        "Latest PagerDuty incident created by the Birdseye flow.";
+
+      $("incident-status").textContent = incident.status || "unknown";
+      $("incident-urgency").textContent = incident.urgency || incident.priority?.summary || "—";
+      $("incident-service").textContent = incident.service?.summary || incident.service?.name || "Birdseye Life SRE";
+      $("incident-created").textContent = formatDate(incident.created_at);
+
+      if (incident.html_url) {
+        $("incident-url").innerHTML = `<a href="${incident.html_url}" target="_blank" rel="noopener">Open in PagerDuty</a>`;
+      } else {
+        $("incident-url").textContent = "";
+      }
+    }
+
+    function renderFeed(incidents) {
+      if (!incidents.length) {
+        $("incident-feed").textContent = "No recent incidents found.";
+        return;
+      }
+
+      $("incident-feed").innerHTML = incidents.slice(0, 5).map((incident) => {
+        const title = incident.title || incident.summary || "Untitled incident";
+        const status = incident.status || "unknown";
+        const service = incident.service?.summary || incident.service?.name || "Birdseye Life SRE";
+        const link = incident.html_url
+          ? `<a href="${incident.html_url}" target="_blank" rel="noopener">${title}</a>`
+          : title;
+
+        return `
+          <div style="padding: 12px 0; border-top: 1px solid #e5e7eb;">
+            <strong>${link}</strong><br />
+            <span>Status: ${status} · Service: ${service} · Created: ${formatDate(incident.created_at)}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function loadIncidents() {
+      try {
+        $("debug").textContent = "";
+
+        const res = await fetch(DASHBOARD_API, {
+          method: "GET",
+          headers: { "Accept": "application/json" }
+        });
+
+        if (!res.ok) {
+          throw new Error(`n8n returned HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const incidents = extractIncidents(data);
+
+        if (!incidents.length) {
+          $("incident-title").textContent = "No incidents found";
+          $("incident-description").textContent = "PagerDuty returned successfully, but no incidents were found.";
+          $("incident-status").textContent = "none";
+          $("incident-urgency").textContent = "—";
+          $("incident-service").textContent = "—";
+          $("incident-created").textContent = "—";
+          $("incident-url").textContent = "";
+          renderFeed([]);
+          setConnection(true, "Connected to PagerDuty via n8n");
+          return;
+        }
+
+        const latest = incidents[0];
+        renderIncident(latest);
+        renderFeed(incidents);
+
+        // Keep the top-left signal loosely synced to the latest live incident.
+        $("signal-title").textContent = "Gmail event escalated";
+        $("signal-summary").textContent =
+          latest.title || "A Gmail-derived Birdseye event has been escalated into PagerDuty.";
+
+        $("agent-prompt").textContent =
+`Use PagerDuty MCP tools to create an incident.
+
+Service: ${latest.service?.summary || "Birdseye Life SRE"}
+Incident title: ${latest.title || "Birdseye Gmail life-ops review needed"}
+Severity: warning
+Source: Gmail
+
+Return the incident ID and URL.`;
+
+        setConnection(true, "Connected to PagerDuty via n8n");
+
+      } catch (error) {
+        $("incident-title").textContent = "Dashboard connection error";
+        $("incident-description").textContent =
+          "The dashboard could not fetch live incidents. Check that the n8n webhook workflow is active and that the webhook response includes CORS headers.";
+        $("incident-status").textContent = "error";
+        $("incident-urgency").textContent = "—";
+        $("incident-service").textContent = "—";
+        $("incident-created").textContent = "—";
+        $("incident-url").textContent = "";
+        $("incident-feed").textContent = "No live data loaded.";
+        $("debug").textContent = `Error: ${error.message}`;
+        setConnection(false, "Dashboard API disconnected");
+      }
+    }
+
+    loadIncidents();
+    setInterval(loadIncidents, 5000);
+  </script>
+</body>
+</html>
