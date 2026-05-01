@@ -1,6 +1,9 @@
 # BEAgentsDay
 BE Repo for Agents Day Hackathon submission
 
+<img width="1201" height="736" alt="image" src="https://github.com/user-attachments/assets/2861c14c-f178-46b8-a7cb-53edfa7790f2" />
+
+
 # Birdseye Life SRE
 
 Birdseye is a personal SRE agent that turns Gmail signals into PagerDuty incidents using n8n, Claude, and PagerDuty MCP.
