@@ -1,0 +1,343 @@
+{
+  "name": "Dashboard webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "birdseye-dashboard",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "de2859ec-243f-41ec-8303-57bb5005b380",
+      "name": "Webhook",
+      "webhookId": "e7bee280-3ed1-4374-bcbe-6c11160abbbf"
+    },
+    {
+      "parameters": {
+        "url": "https://api.pagerduty.com/incidents?limit=5",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "=Authorization",
+              "value": "Token token=e+aDaE56jaSK4tDA22Kw"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.pagerduty+json;version=2"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "976219af-0a81-41da-8a4a-1cdcef57f469",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8d336a7c-08b2-4dc5-81f8-0312e1fdb38f",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a033867b-4ca9-4507-b69e-09c0f007206d",
+  "meta": {
+    "instanceId": "123ef53c28fecdf784c3725ff784b17daa0697044475a9405723c2d40e33b5db"
+  },
+  "id": "ohGMaSMBv3rpnPKE",
+  "tags": []
+}
+{
+  "name": "Gmail Agent workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8708d6e5-2c2a-47b3-9298-17f5dec5d0e8",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 5,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        128
+      ],
+      "id": "bd737fff-b6de-4e8c-9f31-8007ced98426",
+      "name": "Get many messages",
+      "webhookId": "b14ad13a-49c9-4cdf-845e-a95c5ef33a7e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CnD4ikjUxXrY6F1j",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        176,
+        240
+      ],
+      "id": "2c83e8f6-141c-4ded-808b-316b2ca1bcb7",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a0514151-0179-4815-8b27-26234711c5f5",
+              "leftValue": "={{$json.is_life_ops_event}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1168,
+        -96
+      ],
+      "id": "c734637e-8097-489f-97c2-ec875b1a3b0c",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    agent_prompt: `You are an SRE agent connected to PagerDuty via MCP.\n\nCreate a PagerDuty incident for the following life-ops event:\n\nTitle: ${$json.title}\nCategory: ${$json.category}\nSeverity: ${$json.severity}\n\nSummary:\n${$json.summary}\n\nRecommended action:\n${$json.recommended_action}\n\nAdditional context:\n- This event was detected from Gmail\n- Source email ID: ${$json.source_email_id}\n- Status: ${$json.status}\n\nSteps:\n1. Create a PagerDuty incident\n2. Use service: Birdseye Life SRE if available\n3. Add all relevant context\n4. Set severity correctly\n5. Confirm the incident was created.`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        0
+      ],
+      "id": "98f8c63c-a05e-4f64-9cb7-ce85646b8909",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1344,
+        160
+      ],
+      "id": "9358181a-1e23-413f-8168-56f2826a8b2d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "tool": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "parameters": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClient",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        0
+      ],
+      "id": "01456447-e811-40d1-8259-5907d4072a94",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "resource": "logEntry",
+        "operation": "getAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.pagerDuty",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        192
+      ],
+      "id": "8914677a-ab33-492b-a444-173832a4a1fd",
+      "name": "Get many log entries",
+      "credentials": {
+        "pagerDutyApi": {
+          "id": "YZwSe7X5jeckcBSO",
+          "name": "PagerDuty account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const snippet = $json.snippet || \"\";\n\nreturn {\n  json: {\n    agent_prompt: `You are Birdseye, an AI SRE agent.\n\nUse PagerDuty MCP tools to create an incident.\n\nService: Birdseye Life SRE\nTitle: Gmail alert detected by Birdseye\nSeverity: warning\n\nSummary:\n${snippet}\n\nContext:\n- Source: Gmail\n- Email ID: ${$json.id}\n\nReturn the incident ID and URL.`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        128
+      ],
+      "id": "65813abb-59fa-4846-9e90-ad3439a40017",
+      "name": "Code in JavaScript1",
+      "alwaysOutputData": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e5464d59-7e4f-4617-a87c-4b5d788118ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "123ef53c28fecdf784c3725ff784b17daa0697044475a9405723c2d40e33b5db"
+  },
+  "id": "yWODUSY9QV4h1yt6",
+  "tags": []
+}
